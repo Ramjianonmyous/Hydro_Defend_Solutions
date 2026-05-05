@@ -1,5 +1,10 @@
 import { useState, useRef } from 'react';
 import useScrollReveal from './useScrollReveal';
+import emailjs from '@emailjs/browser';
+
+const SERVICE_ID = 'service_jul90m6';
+const TEMPLATE_ID = 'template_vq2ttg9';
+const PUBLIC_KEY = '077Ao5SU2hbPAQhjU';
 
 const SERVICES_LIST = [
   'Fire Safety Audit', 'Hazard Risk Assessment', 'Fire NOC Consultancy',
@@ -91,21 +96,27 @@ export default function Footer() {
     }
     setErrMsg('');
     setStatus('loading');
+
+    const templateParams = {
+      from_name: form.fullName,
+      from_email: form.email,
+      phone: form.phone,
+      service: form.service,
+      facility_type: form.facilityType,
+      message: `Phone: ${form.phone}\nService: ${form.service}\nFacility Type: ${form.facilityType}\n\nMessage: ${form.message}`,
+    };
+
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
       setStatus('success');
       setForm({ fullName: '', phone: '', email: '', service: '', facilityType: '', message: '' });
     } catch (err) {
       setStatus('error');
-      setErrMsg(err.message);
+      setErrMsg('Failed to send message. Please try again later.');
+      console.error('EmailJS Error:', err);
     }
   };
+
 
   // Scroll to socials section
   const scrollToSocials = e => {
